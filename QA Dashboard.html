@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QA Upgrade Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      /* Product colors */
+      --ers-primary: #0047ab;
+      --ers-primary-dark: #002f6c;
+
+      --growth-primary: #048544;
+      --growth-primary-dark: #036233;
+
+      --plum-primary: #6a0d91;
+      --plum-primary-dark: #4a0466;
+
+      /* Global colors */
+      --bg: #f2f2f2;
+      --surface: #ffffff;
+      --border: #dddddd;
+      --text: #1a1a1a;
+      --muted: #666666;
+
+      --green: #2e7d32;
+      --red: #c62828;
+      --amber: #f9a825;
+
+      --shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Ribbon Header */
+    .ribbon {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 24px;
+      background: #1f2933;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .ribbon-title {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-right: 24px;
+    }
+
+    .ribbon-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ribbon-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    .ribbon-btn span.icon {
+      font-size: 14px;
+    }
+
+    .ribbon-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .ribbon-btn.active-home {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+    }
+
+    .ribbon-btn.active-ERS {
+      background: var(--ers-primary);
+    }
+
+    .ribbon-btn.active-Growth {
+      background: var(--growth-primary);
+    }
+
+    .ribbon-btn.active-Plum {
+      background: var(--plum-primary);
+    }
+
+    /* Layout */
+    .page {
+      max-width: 1240px;
+      margin: 16px auto 32px;
+      padding: 0 16px;
+    }
+
+    .page.hidden {
+      display: none;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 16px 18px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .section-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Filters */
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .filter-group label {
+      color: var(--muted);
+    }
+
+    select {
+      padding: 6px 8px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: #ffffff;
+      font-size: 13px;
+      min-width: 120px;
+    }
+
+    /* Cards */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .card {
+      padding: 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .card-title {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .card-value {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .card-meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid transparent;
+    }
+
+    .tag-ers {
+      color: var(--ers-primary);
+      border-color: var(--ers-primary);
+      background: rgba(0, 71, 171, 0.06);
+    }
+
+    .tag-growth {
+      color: var(--growth-primary);
+      border-color: var(--growth-primary);
+      background: rgba(4, 133, 68, 0.06);
+    }
+
+    .tag-plum {
+      color: var(--plum-primary);
+      border-color: var(--plum-primary);
+      background: rgba(106, 13, 145, 0.06);
+    }
+
+    /* Progress bars */
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #e5e5e5;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-fill.green {
+      background: var(--green);
+    }
+
+    .progress-fill.amber {
+      background: var(--amber);
+    }
+
+    .progress-fill.red {
+      background: var(--red);
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    thead {
+      background: #f7f7f7;
+    }
+
+    th,
+    td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #e3e3e3;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #555555;
+    }
+
+    tbody tr:hover {
+      background: #fafafa;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    .status-green {
+      background: var(--green);
+    }
+
+    .status-amber {
+      background: var(--amber);
+    }
+
+    .status-red {
+      background: var(--red);
+    }
+
+    .btn-link {
+      border: none;
+      background: none;
+      color: #2563eb;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+
+    .btn-pill {
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-pill:hover {
+      background: #f3f4ff;
+    }
+
+    .product-label {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .product-label.ERS {
+      color: var(--ers-primary);
+    }
+
+    .product-label.Growth {
+      color: var(--growth-primary);
+    }
+
+    .product-label.Plum {
+      color: var(--plum-primary);
+    }
+
+    .table-caption {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .table-subcaption {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .ribbon {
+        flex-wrap: wrap;
+      }
+
+      .ribbon-title {
+        margin-bottom: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ribbon Header -->
+  <header class="ribbon">
+    <div class="ribbon-title">QA Upgrade Dashboard</div>
+    <nav class="ribbon-nav">
+      <button class="ribbon-btn active-home" data-page="home">
+        <span class="icon">🏠</span> HOME
+      </button>
+      <button class="ribbon-btn" data-page="ERS">
+        <span class="icon">📊</span> ERS
+      </button>
+      <button class="ribbon-btn" data-page="Growth">
+        <span class="icon">📈</span> GROWTH
+      </button>
+      <button class="ribbon-btn" data-page="Plum">
+        <span class="icon">🍇</span> PLUM
+      </button>
+      <button class="ribbon-btn" data-page="test-progress">
+        <span class="icon">✅</span> TEST PROGRESS
+      </button>
+      <button class="ribbon-btn" data-page="deployment">
+        <span class="icon">🚀</span> DEPLOYMENT PLAN
+      </button>
+      <button class="ribbon-btn" data-page="automation">
+        <span class="icon">🤖</span> AUTOMATION STATUS
+      </button>
+      <button class="ribbon-btn" data-page="about">
+        <span class="icon">ℹ️</span> ABOUT
+      </button>
+    </nav>
+  </header>
+
+  <!-- HOME / SUMMARY PAGE -->
+  <main id="home" class="page">
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Dashboard Summary</div>
+          <div class="section-subtitle">
+            Overview of upgrades, sprint items, testing, and automation across all products.
+          </div>
+        </div>
+        <div class="filters-row">
+          <div class="filter-group">
+            <label for="filterProduct">Product</label>
+            <select id="filterProduct">
+              <option value="all">All</option>
+              <option value="ERS">ERS</option>
+              <option value="Growth">Growth</option>
+              <option value="Plum">Plum</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards-grid" id="summaryCards"></div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Sprint Items in Action</div>
+          <div class="section-subtitle">In Development, In Testing, and Testing Completed per product.</div>
+        </div>
+      </div>
+      <div class="cards-grid" id="sprintItemsCards"></div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Sprint Testing Progress</div>
+          <div class="section-subtitle">Test case execution status & completion percentage.</div>
+        </div>
+      </div>
+      <div class="cards-grid" id="testingProgressCards"></div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Test Automation Progress</div>
+          <div class="section-subtitle">Automation coverage and script development status.</div>
+        </div>
+      </div>
+      <div class="cards-grid" id="automationProgressCards"></div>
+    </section>
+  </main>
+
+  <!-- ERS DETAIL PAGE -->
+  <main id="ERS" class="page hidden">
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">ERS – Sprint Items</div>
+          <div class="section-subtitle">
+            Detailed sprint items for ERS including story points, testing status, and timelines.
+          </div>
+        </div>
+      </div>
+      <div class="table-caption">All Sprint Items</div>
+      <div class="table-subcaption">
+        Sprint · Team · Client · Task Owner · Release · Phase · Story Point · Design · Dev Test Scripts · Test Cases · ETA · Review · Status · Execution% · DEV ETA · Testing ETA · UAT · Resource · Comments
+      </div>
+      <div style="overflow-x: auto;">
+        <table id="ersSprintTable">
+          <thead>
+          <tr>
+            <th>Sprint</th>
+            <th>Team</th>
+            <th>Client</th>
+            <th>Task Owner</th>
+            <th>Release</th>
+            <th>Phase</th>
+            <th>Story Pt</th>
+            <th>Design</th>
+            <th>Dev Test Scripts</th>
+            <th>Test Cases</th>
+            <th>Test ETA</th>
+            <th>Review</th>
+            <th>Testing Status</th>
+            <th>Exec %</th>
+            <th>DEV ETA</th>
+            <th>Testing ETA</th>
+            <th>UAT</th>
+            <th>UAT Resource</th>
+            <th>Comment</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">ERS – Deployment Plan</div>
+          <div class="section-subtitle">
+            Environment-wise deployment readiness and test completion.
+          </div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="ersDeploymentTable">
+          <thead>
+          <tr>
+            <th>Client</th>
+            <th>Environment</th>
+            <th>Items</th>
+            <th>Total Cases</th>
+            <th>Pass</th>
+            <th>Fail</th>
+            <th>Completion %</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">ERS – TestLink Test Suite</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="ersTestSuiteTable">
+          <thead>
+          <tr>
+            <th>Client</th>
+            <th>Module</th>
+            <th>Total Test Cases</th>
+            <th>Assigned Resource</th>
+            <th>Reviewed</th>
+            <th>In Progress</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">ERS – Automation Progress</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="ersAutomationTable">
+          <thead>
+          <tr>
+            <th>Module</th>
+            <th>Total Cases</th>
+            <th>Script Completed</th>
+            <th>In Progress</th>
+            <th>Automation %</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- GROWTH DETAIL PAGE -->
+  <main id="Growth" class="page hidden">
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Growth – Sprint Items</div>
+          <div class="section-subtitle">
+            Detailed sprint items for Growth product line.
+          </div>
+        </div>
+      </div>
+      <div class="table-caption">All Sprint Items</div>
+      <div style="overflow-x:auto;">
+        <table id="growthSprintTable">
+          <thead>
+          <tr>
+            <th>Sprint</th>
+            <th>Team</th>
+            <th>Client</th>
+            <th>Task Owner</th>
+            <th>Release</th>
+            <th>Phase</th>
+            <th>Story Pt</th>
+            <th>Design</th>
+            <th>Dev Test Scripts</th>
+            <th>Test Cases</th>
+            <th>Test ETA</th>
+            <th>Review</th>
+            <th>Testing Status</th>
+            <th>Exec %</th>
+            <th>DEV ETA</th>
+            <th>Testing ETA</th>
+            <th>UAT</th>
+            <th>UAT Resource</th>
+            <th>Comment</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">Growth – Deployment Plan</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="growthDeploymentTable">
+          <thead>
+          <tr>
+            <th>Client</th>
+            <th>Environment</th>
+            <th>Items</th>
+            <th>Total Cases</th>
+            <th>Pass</th>
+            <th>Fail</th>
+            <th>Completion %</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">Growth – TestLink Test Suite</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="growthTestSuiteTable">
+          <thead>
+          <tr>
+            <th>Client</th>
+            <th>Module</th>
+            <th>Total Test Cases</th>
+            <th>Assigned Resource</th>
+            <th>Reviewed</th>
+            <th>In Progress</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">Growth – Automation Progress</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="growthAutomationTable">
+          <thead>
+          <tr>
+            <th>Module</th>
+            <th>Total Cases</th>
+            <th>Script Completed</th>
+            <th>In Progress</th>
+            <th>Automation %</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- PLUM DETAIL PAGE -->
+  <main id="Plum" class="page hidden">
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Plum – Sprint Items</div>
+          <div class="section-subtitle">
+            Detailed sprint items for Plum product line.
+          </div>
+        </div>
+      </div>
+      <div class="table-caption">All Sprint Items</div>
+      <div style="overflow-x:auto;">
+        <table id="plumSprintTable">
+          <thead>
+          <tr>
+            <th>Sprint</th>
+            <th>Team</th>
+            <th>Client</th>
+            <th>Task Owner</th>
+            <th>Release</th>
+            <th>Phase</th>
+            <th>Story Pt</th>
+            <th>Design</th>
+            <th>Dev Test Scripts</th>
+            <th>Test Cases</th>
+            <th>Test ETA</th>
+            <th>Review</th>
+            <th>Testing Status</th>
+            <th>Exec %</th>
+            <th>DEV ETA</th>
+            <th>Testing ETA</th>
+            <th>UAT</th>
+            <th>UAT Resource</th>
+            <th>Comment</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">Plum – Deployment Plan</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="plumDeploymentTable">
+          <thead>
+          <tr>
+            <th>Client</th>
+            <th>Environment</th>
+            <th>Items</th>
+            <th>Total Cases</th>
+            <th>Pass</th>
+            <th>Fail</th>
+            <th>Completion %</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">Plum – TestLink Test Suite</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="plumTestSuiteTable">
+          <thead>
+          <tr>
+            <th>Client</th>
+            <th>Module</th>
+            <th>Total Test Cases</th>
+            <th>Assigned Resource</th>
+            <th>Reviewed</th>
+            <th>In Progress</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">Plum – Automation Progress</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="plumAutomationTable">
+          <thead>
+          <tr>
+            <th>Module</th>
+            <th>Total Cases</th>
+            <th>Script Completed</th>
+            <th>In Progress</th>
+            <th>Automation %</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- TEST PROGRESS PAGE (simple combined view) -->
+  <main id="test-progress" class="page hidden">
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Overall Testing Progress</div>
+          <div class="section-subtitle">
+            Consolidated testing completion across ERS, Growth, and Plum.
+          </div>
+        </div>
+      </div>
+      <div class="cards-grid" id="combinedTestingProgress"></div>
+    </section>
+  </main>
+
+  <!-- DEPLOYMENT PAGE -->
+  <main id="deployment" class="page hidden">
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">Deployment Plan – All Products</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="allDeploymentTable">
+          <thead>
+          <tr>
+            <th>Product</th>
+            <th>Client</th>
+            <th>Environment</th>
+            <th>Items</th>
+            <th>Total Cases</th>
+            <th>Pass</th>
+            <th>Fail</th>
+            <th>Completion %</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- AUTOMATION PAGE -->
+  <main id="automation" class="page hidden">
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">Automation Status – All Products</div>
+      </div>
+      <div class="cards-grid" id="combinedAutomationProgress"></div>
+    </section>
+  </main>
+
+  <!-- ABOUT PAGE -->
+  <main id="about" class="page hidden">
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">About this Dashboard</div>
+      </div>
+      <p style="font-size: 13px; line-height: 1.5;">
+        This QA Upgrade Dashboard is designed to track release upgrades across multiple products:
+        <strong>ERS</strong>, <strong>Growth</strong>, and <strong>Plum</strong>.
+        It provides:
+      </p>
+      <ul style="font-size: 13px; line-height: 1.6;">
+        <li>High-level view of upgrade scope, sprint items, testing progress, and automation coverage.</li>
+        <li>Product-wise detailed drill-down including sprint details, deployment plan, TestLink suites, and automation breakdown.</li>
+        <li>Color-coded RAG status indicators to quickly highlight risks.</li>
+      </ul>
+      <p style="font-size: 13px; line-height: 1.5;">
+        You can extend this by connecting real-time data from your test management tool, CI/CD platform, or project tracking system.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    // ---------------- SAMPLE DATA ----------------
+    const productSummary = [
+      {
+        product: "ERS",
+        qaClient: "ABC Insurance",
+        prodClient: "ABC Prod",
+        totalTestCases: 120,
+        pass: 90,
+        fail: 10,
+        inTest: 20,
+        autoTotal: 120,
+        autoDone: 55,
+        autoInProgress: 25,
+        inDev: 8,
+        inTesting: 5,
+        completed: 3,
+      },
+      {
+        product: "Growth",
+        qaClient: "Delta Health",
+        prodClient: "Delta Prod",
+        totalTestCases: 80,
+        pass: 65,
+        fail: 5,
+        inTest: 10,
+        autoTotal: 80,
+        autoDone: 40,
+        autoInProgress: 20,
+        inDev: 5,
+        inTesting: 2,
+        completed: 4,
+      },
+      {
+        product: "Plum",
+        qaClient: "Xion Fintech",
+        prodClient: "Xion Prod",
+        totalTestCases: 60,
+        pass: 40,
+        fail: 8,
+        inTest: 12,
+        autoTotal: 60,
+        autoDone: 18,
+        autoInProgress: 22,
+        inDev: 6,
+        inTesting: 3,
+        completed: 1,
+      },
+    ];
+
+    const totalUpgradesPlanned = 14; // example
+
+    const sprintItems = {
+      ERS: [
+        {
+          sprint: "S-14",
+          team: "ERS-A",
+          client: "ABC",
+          taskOwner: "John",
+          release: "R17",
+          phase: "Build",
+          storyPt: 8,
+          design: "Done",
+          devTestScripts: "Yes",
+          testCases: 35,
+          testEta: "2025-10-25",
+          review: "Done",
+          testingStatus: "In Testing",
+          execPct: 70,
+          devEta: "2025-10-15",
+          testingEta: "2025-10-28",
+          uat: "2025-11-05",
+          uatResource: "Anita",
+          comment: "",
+        },
+        {
+          sprint: "S-14",
+          team: "ERS-B",
+          client: "ABC",
+          taskOwner: "Ravi",
+          release: "R17",
+          phase: "Build",
+          storyPt: 5,
+          design: "In Progress",
+          devTestScripts: "No",
+          testCases: 20,
+          testEta: "2025-10-30",
+          review: "In Progress",
+          testingStatus: "In Dev",
+          execPct: 50,
+          devEta: "2025-10-18",
+          testingEta: "2025-11-01",
+          uat: "2025-11-08",
+          uatResource: "Vijay",
+          comment: "Pending test script completion",
+        },
+      ],
+      Growth: [
+        {
+          sprint: "S-10",
+          team: "Growth-A",
+          client: "Delta",
+          taskOwner: "Leena",
+          release: "R08",
+          phase: "Build",
+          storyPt: 13,
+          design: "Done",
+          devTestScripts: "Yes",
+          testCases: 30,
+          testEta: "2025-10-22",
+          review: "Done",
+          testingStatus: "Completed",
+          execPct: 100,
+          devEta: "2025-10-10",
+          testingEta: "2025-10-22",
+          uat: "2025-10-30",
+          uatResource: "Amit",
+          comment: "",
+        },
+      ],
+      Plum: [
+        {
+          sprint: "S-05",
+          team: "Plum-Core",
+          client: "Xion",
+          taskOwner: "Priya",
+          release: "R03",
+          phase: "Build",
+          storyPt: 8,
+          design: "Done",
+          devTestScripts: "Yes",
+          testCases: 25,
+          testEta: "2025-10-20",
+          review: "In Progress",
+          testingStatus: "In Testing",
+          execPct: 60,
+          devEta: "2025-10-12",
+          testingEta: "2025-10-24",
+          uat: "2025-10-31",
+          uatResource: "Rahul",
+          comment: "Few defects open",
+        },
+      ],
+    };
+
+    const deploymentPlan = {
+      ERS: [
+        {
+          client: "ABC",
+          environment: "PROD",
+          items: 14,
+          totalCases: 120,
+          pass: 90,
+          fail: 10,
+        },
+      ],
+      Growth: [
+        {
+          client: "Delta",
+          environment: "PROD",
+          items: 9,
+          totalCases: 80,
+          pass: 65,
+          fail: 5,
+        },
+      ],
+      Plum: [
+        {
+          client: "Xion",
+          environment: "PROD",
+          items: 7,
+          totalCases: 60,
+          pass: 40,
+          fail: 8,
+        },
+      ],
+    };
+
+    const testSuite = {
+      ERS: [
+        {
+          client: "ABC",
+          module: "Policy",
+          totalCases: 40,
+          assigned: "Anita",
+          reviewed: 25,
+          inProgress: 10,
+        },
+      ],
+      Growth: [
+        {
+          client: "Delta",
+          module: "Billing",
+          totalCases: 30,
+          assigned: "Suresh",
+          reviewed: 20,
+          inProgress: 5,
+        },
+      ],
+      Plum: [
+        {
+          client: "Xion",
+          module: "Trading",
+          totalCases: 25,
+          assigned: "Neha",
+          reviewed: 15,
+          inProgress: 6,
+        },
+      ],
+    };
+
+    const automationModules = {
+      ERS: [
+        { module: "Policy", totalCases: 40, scriptCompleted: 18, inProgress: 12 },
+        { module: "Claims", totalCases: 30, scriptCompleted: 15, inProgress: 10 },
+      ],
+      Growth: [
+        {
+          module: "Billing",
+          totalCases: 30,
+          scriptCompleted: 16,
+          inProgress: 8,
+        },
+      ],
+      Plum: [
+        {
+          module: "Trading",
+          totalCases: 25,
+          scriptCompleted: 8,
+          inProgress: 9,
+        },
+      ],
+    };
+
+    // ----------------- HELPERS -----------------
+    function computePercentage(done, total) {
+      if (!total || total === 0) return 0;
+      return Math.round((done / total) * 100);
+    }
+
+    function getRagClass(pct) {
+      if (pct >= 80) return "green";
+      if (pct >= 50) return "amber";
+      return "red";
+    }
+
+    function getRagStatusClass(pct) {
+      if (pct >= 80) return "status-green";
+      if (pct >= 50) return "status-amber";
+      return "status-red";
+    }
+
+    // -------------- RENDER SUMMARY PAGE --------------
+    function renderSummary() {
+      const productFilter = document.getElementById("filterProduct").value;
+      const summaryCards = document.getElementById("summaryCards");
+      const sprintItemsCards = document.getElementById("sprintItemsCards");
+      const testingProgressCards = document.getElementById(
+        "testingProgressCards"
+      );
+      const automationProgressCards = document.getElementById(
+        "automationProgressCards"
+      );
+
+      summaryCards.innerHTML = "";
+      sprintItemsCards.innerHTML = "";
+      testingProgressCards.innerHTML = "";
+      automationProgressCards.innerHTML = "";
+
+      // First card: total upgrades planned
+      const totalCard = document.createElement("div");
+      totalCard.className = "card";
+      totalCard.innerHTML = `
+        <div class="card-title">Total Upgrades Planned</div>
+        <div class="card-value">${totalUpgradesPlanned}</div>
+        <div class="card-meta">Across ERS, Growth & Plum</div>
+      `;
+      summaryCards.appendChild(totalCard);
+
+      productSummary
+        .filter((p) =>
+          productFilter === "all" ? true : p.product === productFilter
+        )
+        .forEach((p) => {
+          const testCompletionPct = computePercentage(
+            p.pass,
+            p.totalTestCases
+          );
+          const autoCompletionPct = computePercentage(
+            p.autoDone,
+            p.autoTotal
+          );
+          const tagClass =
+            p.product === "ERS"
+              ? "tag-ers"
+              : p.product === "Growth"
+              ? "tag-growth"
+              : "tag-plum";
+
+          // Summary per product
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="card-title">
+              <span class="tag ${tagClass}">${p.product}</span>
+            </div>
+            <div class="card-value">${p.qaClient}</div>
+            <div class="card-meta">
+              QA Client · PROD: ${p.prodClient}
+            </div>
+          `;
+          summaryCards.appendChild(card);
+
+          // Sprint Items in Action
+          const sCard = document.createElement("div");
+          sCard.className = "card";
+          sCard.innerHTML = `
+            <div class="card-title">${p.product} – Sprint Items</div>
+            <div class="card-value">${p.inDev + p.inTesting + p.completed}</div>
+            <div class="card-meta">
+              In Dev: <strong>${p.inDev}</strong> · In Testing:
+              <strong>${p.inTesting}</strong> · Completed:
+              <strong>${p.completed}</strong>
+            </div>
+          `;
+          sprintItemsCards.appendChild(sCard);
+
+          // Testing Progress card
+          const tCard = document.createElement("div");
+          tCard.className = "card";
+          const tRagClass = getRagClass(testCompletionPct);
+          tCard.innerHTML = `
+            <div class="card-title">${p.product} – Testing</div>
+            <div class="card-value">${testCompletionPct}%</div>
+            <div class="card-meta">
+              Total: ${p.totalTestCases} · Pass: ${p.pass} · Fail: ${
+            p.fail
+          } · In Test: ${p.inTest}
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill ${tRagClass}" style="width: ${testCompletionPct}%;"></div>
+            </div>
+          `;
+          testingProgressCards.appendChild(tCard);
+
+          // Automation Progress card
+          const aCard = document.createElement("div");
+          aCard.className = "card";
+          const aRagClass = getRagClass(autoCompletionPct);
+          aCard.innerHTML = `
+            <div class="card-title">${p.product} – Automation</div>
+            <div class="card-value">${autoCompletionPct}%</div>
+            <div class="card-meta">
+              Total: ${p.autoTotal} · Scripts Done: ${p.autoDone} · In Progress: ${p.autoInProgress}
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill ${aRagClass}" style="width: ${autoCompletionPct}%;"></div>
+            </div>
+          `;
+          automationProgressCards.appendChild(aCard);
+        });
+    }
+
+    // -------------- RENDER DETAIL TABLES --------------
+    function renderSprintTable(product, tableId) {
+      const tbody = document.querySelector(`#${tableId} tbody`);
+      tbody.innerHTML = "";
+      (sprintItems[product] || []).forEach((row) => {
+        const tr = document.createElement("tr");
+        const ragClass = getRagStatusClass(row.execPct);
+        tr.innerHTML = `
+          <td>${row.sprint}</td>
+          <td>${row.team}</td>
+          <td>${row.client}</td>
+          <td>${row.taskOwner}</td>
+          <td>${row.release}</td>
+          <td>${row.phase}</td>
+          <td>${row.storyPt}</td>
+          <td>${row.design}</td>
+          <td>${row.devTestScripts}</td>
+          <td>${row.testCases}</td>
+          <td>${row.testEta}</td>
+          <td>${row.review}</td>
+          <td><span class="status-pill ${ragClass}">${row.testingStatus}</span></td>
+          <td>${row.execPct}%</td>
+          <td>${row.devEta}</td>
+          <td>${row.testingEta}</td>
+          <td>${row.uat}</td>
+          <td>${row.uatResource}</td>
+          <td>${row.comment || ""}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderDeploymentTable(product, tableId) {
+      const tbody = document.querySelector(`#${tableId} tbody`);
+      tbody.innerHTML = "";
+      (deploymentPlan[product] || []).forEach((row) => {
+        const pct = computePercentage(row.pass, row.totalCases);
+        const ragClass = getRagStatusClass(pct);
+        tbody.innerHTML += `
+          <tr>
+            <td>${row.client}</td>
+            <td>${row.environment}</td>
+            <td>${row.items}</td>
+            <td>${row.totalCases}</td>
+            <td>${row.pass}</td>
+            <td>${row.fail}</td>
+            <td>
+              <span class="status-pill ${ragClass}">${pct}%</span>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderTestSuiteTable(product, tableId) {
+      const tbody = document.querySelector(`#${tableId} tbody`);
+      tbody.innerHTML = "";
+      (testSuite[product] || []).forEach((row) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${row.client}</td>
+            <td>${row.module}</td>
+            <td>${row.totalCases}</td>
+            <td>${row.assigned}</td>
+            <td>${row.reviewed}</td>
+            <td>${row.inProgress}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderAutomationTable(product, tableId) {
+      const tbody = document.querySelector(`#${tableId} tbody`);
+      tbody.innerHTML = "";
+      (automationModules[product] || []).forEach((row) => {
+        const pct = computePercentage(row.scriptCompleted, row.totalCases);
+        const ragClass = getRagStatusClass(pct);
+        tbody.innerHTML += `
+          <tr>
+            <td>${row.module}</td>
+            <td>${row.totalCases}</td>
+            <td>${row.scriptCompleted}</td>
+            <td>${row.inProgress}</td>
+            <td>
+              <span class="status-pill ${ragClass}">${pct}%</span>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderAllDetailPages() {
+      renderSprintTable("ERS", "ersSprintTable");
+      renderDeploymentTable("ERS", "ersDeploymentTable");
+      renderTestSuiteTable("ERS", "ersTestSuiteTable");
+      renderAutomationTable("ERS", "ersAutomationTable");
+
+      renderSprintTable("Growth", "growthSprintTable");
+      renderDeploymentTable("Growth", "growthDeploymentTable");
+      renderTestSuiteTable("Growth", "growthTestSuiteTable");
+      renderAutomationTable("Growth", "growthAutomationTable");
+
+      renderSprintTable("Plum", "plumSprintTable");
+      renderDeploymentTable("Plum", "plumDeploymentTable");
+      renderTestSuiteTable("Plum", "plumTestSuiteTable");
+      renderAutomationTable("Plum", "plumAutomationTable");
+    }
+
+    // Combined tables for test-progress, deployment, automation pages
+    function renderCombinedTesting() {
+      const container = document.getElementById("combinedTestingProgress");
+      container.innerHTML = "";
+      productSummary.forEach((p) => {
+        const pct = computePercentage(p.pass, p.totalTestCases);
+        const ragClass = getRagClass(pct);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-title">${p.product} – Testing Completion</div>
+          <div class="card-value">${pct}%</div>
+          <div class="card-meta">
+            Total: ${p.totalTestCases} · Pass: ${p.pass} · Fail: ${
+          p.fail
+        } · In Test: ${p.inTest}
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill ${ragClass}" style="width: ${pct}%;"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderAllDeploymentCombined() {
+      const tbody = document.querySelector("#allDeploymentTable tbody");
+      tbody.innerHTML = "";
+      ["ERS", "Growth", "Plum"].forEach((product) => {
+        (deploymentPlan[product] || []).forEach((row) => {
+          const pct = computePercentage(row.pass, row.totalCases);
+          const ragClass = getRagStatusClass(pct);
+          tbody.innerHTML += `
+            <tr>
+              <td>${product}</td>
+              <td>${row.client}</td>
+              <td>${row.environment}</td>
+              <td>${row.items}</td>
+              <td>${row.totalCases}</td>
+              <td>${row.pass}</td>
+              <td>${row.fail}</td>
+              <td><span class="status-pill ${ragClass}">${pct}%</span></td>
+            </tr>
+          `;
+        });
+      });
+    }
+
+    function renderCombinedAutomation() {
+      const container = document.getElementById("combinedAutomationProgress");
+      container.innerHTML = "";
+      productSummary.forEach((p) => {
+        const pct = computePercentage(p.autoDone, p.autoTotal);
+        const ragClass = getRagClass(pct);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-title">${p.product} – Automation Coverage</div>
+          <div class="card-value">${pct}%</div>
+          <div class="card-meta">
+            Total Cases: ${p.autoTotal} · Scripts Done: ${
+          p.autoDone
+        } · In Progress: ${p.autoInProgress}
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill ${ragClass}" style="width: ${pct}%;"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // -------------- NAVIGATION --------------
+    function switchPage(pageId) {
+      // Hide all pages
+      document.querySelectorAll(".page").forEach((p) => {
+        p.classList.add("hidden");
+      });
+      // Show selected
+      const page = document.getElementById(pageId);
+      if (page) page.classList.remove("hidden");
+
+      // Update ribbon active state
+      document
+        .querySelectorAll(".ribbon-btn")
+        .forEach((btn) => btn.classList.remove("active-home", "active-ERS", "active-Growth", "active-Plum"));
+
+      const activeBtn = document.querySelector(
+        `.ribbon-btn[data-page="${pageId}"]`
+      );
+      if (activeBtn) {
+        if (pageId === "home") activeBtn.classList.add("active-home");
+        else if (pageId === "ERS") activeBtn.classList.add("active-ERS");
+        else if (pageId === "Growth")
+          activeBtn.classList.add("active-Growth");
+        else if (pageId === "Plum") activeBtn.classList.add("active-Plum");
+        else activeBtn.classList.add("active-home");
+      }
+    }
+
+    // -------------- INITIALISE --------------
+    function init() {
+      // Render summary and detail content
+      renderSummary();
+      renderAllDetailPages();
+      renderCombinedTesting();
+      renderAllDeploymentCombined();
+      renderCombinedAutomation();
+
+      // Ribbon navigation
+      document.querySelectorAll(".ribbon-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const pageId = btn.getAttribute("data-page");
+          switchPage(pageId);
+        });
+      });
+
+      // Product filter
+      document
+        .getElementById("filterProduct")
+        .addEventListener("change", renderSummary);
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
